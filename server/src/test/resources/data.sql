@@ -50,7 +50,8 @@ VALUES ('Jowita', 'jowita@test.com', '123', 1, 5),
        ('Tomek', 'tomek@test.com', '555', 3, 3),
        ('Piotr', 'piotr@test.com', '987', 2, 4),
        ('test', 'a@a.pl', '000', 1, 1),
-       ('admin', 'admin@admin.pl', '$2a$10$0fN5YqsNup0xeB.u6Q4QU.neP4XZPp8zNcwvU6AVxlxn2MGTNSLf.', 1, 1);
+       ('admin', 'admin@admin.pl', '$2a$10$0fN5YqsNup0xeB.u6Q4QU.neP4XZPp8zNcwvU6AVxlxn2MGTNSLf.', 1, 1),
+       ('employee', 'employee@employee.pl', '$2a$10$vHWoqmsCt4jlQBMaEoBlquvCk9NVSuyxuUrvOvGDghOHWcLra55sS', 4, 2);
 
 
 INSERT INTO threads (thread_date, thread_title, thread_description, thread_justification, thread_photo, thread_points,
@@ -113,6 +114,9 @@ VALUES (1, '2023-07-26', 'Comment 1 for Thread 1', 1),
        (1, '2023-07-31', 'Comment 1 for Thread 6', 5),
        (2, '2023-07-31', 'Comment 1 for Thread 7', 6),
        (3, '2023-08-01', 'Comment 1 for Thread 8', 7);
+
+-- INSERT INTO token(id, expired, revoked, token, token_type, user_id)
+-- VALUES (1, 'false', 'false', 'eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZW1wbG95ZWUiLCJ1c2VyX2lkIjo3LCJyb2xlIjoiRW1wbG95ZWUiLCJzdWIiOiJlbXBsb3llZUBlbXBsb3llZS5wbCIsImlhdCI6MTcwNTg3MDYwOSwiZXhwIjoxNzA1OTU3MDA5fQ.uf6v139SELc9TYOUYfRuNOiPpPfAKqzEeeDqRn2aj00', 'BEARER', 7);
 
 -- UPDATE threads
 -- SET admission_id = (SELECT admission_id FROM admissions WHERE thread_id = threads.thread_id),

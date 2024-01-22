@@ -1,21 +1,28 @@
 package com.example.ideas.user.service;
 
+import com.example.ideas.exception.DataAlreadyExistsException;
 import com.example.ideas.exception.EntityNotFoundException;
+import com.example.ideas.exception.NoAuthorizationException;
 import com.example.ideas.helpers.ObjectProvider;
 import com.example.ideas.security.auth.AuthenticationService;
 import com.example.ideas.security.config.JwtService;
 import com.example.ideas.user.controller.UserResponseDTO;
+import com.example.ideas.user.controller.UserUpdateRequest;
 import com.example.ideas.user.model.User;
 import com.example.ideas.user.repository.UserRepository;
 import com.example.ideas.util_Entities.department.model.Department;
 import com.example.ideas.util_Entities.department.repository.DepartmentRepository;
 import com.example.ideas.util_Entities.role.model.Role;
 import com.example.ideas.util_Entities.role.repository.RoleRepository;
+import jakarta.validation.constraints.Email;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -46,9 +53,9 @@ class UserServiceTest {
     private RoleRepository roleRepository;
     @Mock
     private DepartmentRepository departmentRepository;
-    @Autowired
+    @Mock
     private AuthenticationService authenticationService;
-    @Autowired
+    @Mock
     private JwtService jwtService;
 
     @BeforeEach
@@ -184,9 +191,171 @@ class UserServiceTest {
     }
 
     @Test
-    @Disabled
-    void updateUserById() {
+    void givenTheUserIsNotAdminAndWantsToUpdateAnotherUserProfileShouldThrowNoAuthorizationException1() {
+        //given
+        User user = User.builder()
+                .userId(2L)
+                .name("User")
+                .role(new Role(4L, "Employee"))
+                .department(new Department(1L, "R&D"))
+                .password("password")
+                .email("user@test.pl")
+                .build();
+
+        Long userId = 2L;
+        UserUpdateRequest userUpdateRequest =
+                new UserUpdateRequest("Alex_updated", null, null, null);
+        String token = "Bearer token";
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(authenticationService.getUserRoleName(token)).thenReturn("Employee");
+        when(jwtService.getJWT(token)).thenReturn("token");
+        when(jwtService.extractUsername("token")).thenReturn("employee@employee.pl");
+        //when
+        //then
+        assertThatThrownBy(() -> underTest.updateUserById(userId, userUpdateRequest, token))
+                .isInstanceOf(NoAuthorizationException.class)
+                .hasMessageContaining("user details can only be modified by the data owner or Admin");
     }
 
-//    "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2LCJyb2xlIjoiQWRtaW4iLCJuYW1lIjoiYWRtaW4iLCJzdWIiOiJhZG1pbkBhZG1pbi5wbCIsImlhdCI6MTY5OTQ3NjgxMywiZXhwIjoxNjk5NTYzMjEzfQ.Wxvm45cdWQP_pQWc6NvPMumuR1aSjRrFU0vBPF5Q6xU"
+    @ParameterizedTest
+    @CsvSource({"Employee, employee@employee.pl", "Admin,admin@admin.pl"})
+    void givenTheUserIsAdminOrWantsToUpdateOwnProfileNameShouldBeSuccessful1(String role, String email) throws DataAlreadyExistsException, NoAuthorizationException, EntityNotFoundException, IllegalAccessException {
+        //given
+        User user = User.builder()
+                .userId(7L)
+                .name("Employee")
+                .role(new Role(4L, "Employee"))
+                .department(new Department(2L, "Human Resources Division"))
+                .password("$2a$10$vHWoqmsCt4jlQBMaEoBlquvCk9NVSuyxuUrvOvGDghOHWcLra55sS")
+                .email("employee@employee.pl")
+                .build();
+
+        UserResponseDTO expected = new UserResponseDTO(
+                7L,
+                "Employee_updated",
+                "employee@employee.pl",
+                List.of("ROLE_Employee"),
+                new Department(2L, "Human Resources Division")
+        );
+
+        Long userId = 7L;
+        UserUpdateRequest userUpdateRequest =
+                new UserUpdateRequest("Employee_updated", null, null, null);
+
+        String token = "Bearer token";
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        when(authenticationService.getUserRoleName(token)).thenReturn(role);
+        when(jwtService.getJWT(token)).thenReturn("token");
+        when(jwtService.extractUsername("token")).thenReturn(email);
+        //when
+        UserResponseDTO actual = underTest.updateUserById(7L, userUpdateRequest, token);
+        //then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"Employee, employee@employee.pl", "Admin,admin@admin.pl"})
+    void givenTheUserHasRightsToUpdateButWantsToChangeEmailToOneThatAlreadyExistsShouldThrowDataAlreadyExistsException(String role, String email) {
+        //given
+        User user = User.builder()
+                .userId(7L)
+                .name("employee")
+                .role(new Role(4L, "Employee"))
+                .department(new Department(2L, "Human Resources Division"))
+                .password("$2a$10$vHWoqmsCt4jlQBMaEoBlquvCk9NVSuyxuUrvOvGDghOHWcLra55sS")
+                .email("employee@employee.pl")
+                .build();
+
+        Long userId = 2L;
+        UserUpdateRequest userUpdateRequest =
+                new UserUpdateRequest(null, "employee@employee.pl", null, null);
+        String token = "Bearer token";
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        when(userRepository.findUserByEmail("employee@employee.pl")).thenReturn(Optional.of(user));
+        when(authenticationService.getUserRoleName(token)).thenReturn(role);
+        when(jwtService.getJWT(token)).thenReturn("token");
+        when(jwtService.extractUsername("token")).thenReturn(email);
+        //when
+        //then
+        assertThatThrownBy(() -> underTest.updateUserById(userId, userUpdateRequest, token))
+                .isInstanceOf(DataAlreadyExistsException.class)
+                .hasMessageContaining("email already exists in DB");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"Employee, employee@employee.pl"})
+    void givenTheUserHasNoRightsToChangeRoleShouldThrowIllegalAccessExceptionException(String role, String email) {
+        //given
+        User user = User.builder()
+                .userId(7L)
+                .name("employee")
+                .role(new Role(4L, "Employee"))
+                .department(new Department(2L, "Human Resources Division"))
+                .password("$2a$10$vHWoqmsCt4jlQBMaEoBlquvCk9NVSuyxuUrvOvGDghOHWcLra55sS")
+                .email("employee@employee.pl")
+                .build();
+
+        Long userId = 2L;
+        UserUpdateRequest userUpdateRequest =
+                new UserUpdateRequest(null, null, 1L, null);
+        String token = "Bearer token";
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        when(authenticationService.getUserRoleName(token)).thenReturn(role);
+        when(jwtService.getJWT(token)).thenReturn("token");
+        when(jwtService.extractUsername("token")).thenReturn(email);
+        //when
+        //then
+        assertThatThrownBy(() -> underTest.updateUserById(userId, userUpdateRequest, token))
+                .isInstanceOf(IllegalAccessException.class)
+                .hasMessageContaining("This user has no authority to modify role");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"Admin,admin@admin.pl"})
+    void givenTheUserIsAdminShouldBeAbleToUpdateAllData(String role, String email) throws DataAlreadyExistsException, NoAuthorizationException, EntityNotFoundException, IllegalAccessException {
+        //given
+        User user = User.builder()
+                .userId(7L)
+                .name("Employee")
+                .role(new Role(4L, "Employee"))
+                .department(new Department(2L, "Human Resources Division"))
+                .password("$2a$10$vHWoqmsCt4jlQBMaEoBlquvCk9NVSuyxuUrvOvGDghOHWcLra55sS")
+                .email("employee@employee.pl")
+                .build();
+
+        UserResponseDTO expected = new UserResponseDTO(
+                7L,
+                "Employee_updated",
+                "employee_updated@employee.pl",
+                List.of("ROLE_Admin"),
+                new Department(1L, "Department of Strategic Planning")
+        );
+
+        Long userId = 7L;
+        UserUpdateRequest userUpdateRequest =
+                new UserUpdateRequest("Employee_updated", "employee_updated@employee.pl", 1L, 1L);
+
+        String token = "Bearer token";
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findUserByEmail("employee_updated@employee.pl")).thenReturn(Optional.empty());
+        when(roleRepository.findById(1L)).thenReturn(Optional.of(new Role(1L, "Admin")));
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(new Department(1L , "Department of Strategic Planning")));
+        when(authenticationService.getUserRoleName(token)).thenReturn(role);
+        when(jwtService.getJWT(token)).thenReturn("token");
+        when(jwtService.extractUsername("token")).thenReturn(email);
+
+        //when
+        UserResponseDTO actual = underTest.updateUserById(7L, userUpdateRequest, token);
+        //then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
 }

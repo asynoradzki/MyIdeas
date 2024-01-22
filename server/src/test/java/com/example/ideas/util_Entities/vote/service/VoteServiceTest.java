@@ -55,8 +55,6 @@ class VoteServiceTest {
         //then
         verify(voteRepository, never()).deleteAll(any());
 
-
-
     }
 
     @Test

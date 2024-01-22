@@ -5,6 +5,8 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import java.util.List;
 import java.util.Optional;
 
 
@@ -33,4 +35,26 @@ class UserRepositoryTest {
         Assertions.assertThat(actual.isPresent()).isEqualTo(false);
     }
 
+
+    @Test
+    void itShouldFindByEmailContainsIgnoreCase4EmailsContainingKeywordTest(){
+        // given
+        String searchedText = "test";
+        int expectedResultsNumber = 4;
+        // when
+        List<User> actual = underTest.findByEmailContainsIgnoreCase(searchedText);
+        // then
+        Assertions.assertThat(actual.size()).isEqualTo(expectedResultsNumber);
+    }
+
+    @Test
+    void itShouldNotFindByEmailContainsIgnoreCase4EmailsContainingKeywordAAAA(){
+        // given
+        String searchedText = "AAAA";
+        int expectedResultsNumber = 0;
+        // when
+        List<User> actual = underTest.findByEmailContainsIgnoreCase(searchedText);
+        // then
+        Assertions.assertThat(actual.size()).isEqualTo(expectedResultsNumber);
+    }
 }
