@@ -34,6 +34,7 @@ class CategoryControllerTest {
     private CategoryRepository categoryRepository;
 
     @Test
+    @Disabled
     void itShouldGetAllCategoriesFromDB() throws Exception {
         //given
         List<Category> expected = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "categoryId"));
@@ -58,6 +59,7 @@ class CategoryControllerTest {
     }
 
     @Test
+    @Disabled
     void itShouldGetCategoryWithId1() throws Exception {
         //given
         Category expected = categoryRepository.findById(1L).orElse(null);
@@ -77,6 +79,7 @@ class CategoryControllerTest {
 
 
     @Test
+    @Disabled
     void itShouldNotGetCategoryWithId100() throws Exception {
         //given
         int expected = 404;

@@ -150,7 +150,7 @@ export const AddUser = () => {
                     style={{ width: "100%" }}
                 >
                     <UserDataContainer>
-                        <Box minHeight={80} width="100%" sx={{}}>
+                        <Box minHeight={80} width="100%">
                             <TextInput
                                 id={"register-user-name-input"}
                                 label={"Name"}

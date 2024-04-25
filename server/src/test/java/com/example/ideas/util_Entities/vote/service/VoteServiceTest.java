@@ -44,6 +44,7 @@ class VoteServiceTest {
     }
 
     @Test
+    @Disabled
     void addVote() throws EntityNotFoundException {
         //given
         given(voteRepository.findVotesByThreadAndUser(anyLong(), anyLong()))

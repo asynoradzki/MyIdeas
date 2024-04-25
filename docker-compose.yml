@@ -6,9 +6,9 @@ services:
     container_name: db
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgresql
-      - POSTGRES_DB=ideas_app
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${IDEAS_DB}
     ports:
       - '5432:5432'
     volumes:
@@ -18,10 +18,13 @@ services:
     build: ./server/.
     container_name: springapp
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ideas_app
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgresql
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${IDEAS_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop
+      - SPRING_MAIL_USERNAME=${MAIL_SENDER_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_SENDER_PASSWORD}
+      - GOOGLE_RECAPTCHA_SECRET=${GOOGLE_RECAPTCHA_SECRET}
     ports:
       - '8080:8080'
     restart: always

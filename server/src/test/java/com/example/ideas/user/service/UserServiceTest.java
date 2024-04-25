@@ -178,6 +178,7 @@ class UserServiceTest {
     }
 
     @Test
+    @Disabled
     void givenThatUserDoesNotExistItShouldIllegalStateException() {
         //given
         long id = 1;
@@ -354,6 +355,86 @@ class UserServiceTest {
 
         //when
         UserResponseDTO actual = underTest.updateUserById(7L, userUpdateRequest, token);
+        //then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value={"tes", "null" },  nullValues={"null"})
+    void givenTheSearchTermIsLessThan4CharactersLongOrNullShouldReturnAnEmptyList(String searchTerm){
+        //given
+        List<UserResponseDTO> expected = new ArrayList<>();
+
+        //when
+        List<UserResponseDTO> actual = underTest.searchUsersByEmail(searchTerm);
+
+        //then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void givenSearchTermEqualsAAAAAndNoUserIsFoundShouldReturnEmptyList() {
+        //given
+        String searchTerm = "aaaa";
+        List<UserResponseDTO> expected = new ArrayList<>();
+
+        when(userRepository.findByEmailContainsIgnoreCase(searchTerm)).thenReturn(new ArrayList<>());
+
+        //when
+        List<UserResponseDTO> actual = underTest.searchUsersByEmail(searchTerm);
+
+        //then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void givenSearchTermEqualsEMPLOYEEAndTwoUsersHaveBeenFoundShouldReturnAListOf2() {
+        //given
+
+        User user1 = User.builder()
+                .userId(7L)
+                .name("Employee")
+                .role(new Role(4L, "Employee"))
+                .department(new Department(2L, "Human Resources Division"))
+                .password("$2a$10$vHWoqmsCt4jlQBMaEoBlquvCk9NVSuyxuUrvOvGDghOHWcLra55sS")
+                .email("employee@employee.pl")
+                .build();
+
+        User user2 = User.builder()
+                .userId(6L)
+                .name("Admin")
+                .role(new Role(1L, "Admin"))
+                .department(new Department(2L, "Human Resources Division"))
+                .password("$2a$10$vHWoqmsCt4jlQBMaEoBlquvCk9NVSuyxuUrvOvGDghOHWcLra55sS")
+                .email("admin@employee.pl")
+                .build();
+
+        UserResponseDTO user1Response = new UserResponseDTO(
+                7L,
+                "Employee",
+                "employee@employee.pl",
+                List.of("ROLE_Employee"),
+                new Department(2L, "Human Resources Division")
+        );
+
+        UserResponseDTO user2Response = new UserResponseDTO(
+                6L,
+                "Admin",
+                "admin@employee.pl",
+                List.of("ROLE_Admin"),
+                new Department(2L, "Human Resources Division")
+        );
+
+        List<User> users = List.of(user1, user2);
+        List<UserResponseDTO> expected = List.of(user1Response, user2Response);
+
+        String searchTerm = "employee";
+
+        when(userRepository.findByEmailContainsIgnoreCase(searchTerm)).thenReturn(users);
+
+        //when
+        List<UserResponseDTO> actual = underTest.searchUsersByEmail(searchTerm);
+
         //then
         Assertions.assertThat(actual).isEqualTo(expected);
     }

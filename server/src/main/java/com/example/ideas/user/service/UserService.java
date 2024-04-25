@@ -114,11 +114,12 @@ public class UserService {
     }
 
     public List<UserResponseDTO> searchUsersByEmail(String searchTerm) {
-        List<User> users = userRepository.findByEmailContainsIgnoreCase(searchTerm);
 
         if(searchTerm == null || searchTerm.length() < 4) {
             return new ArrayList<>();
         }
+
+        List<User> users = userRepository.findByEmailContainsIgnoreCase(searchTerm);
 
         return users.stream().map(user -> userDTOMapper.apply(user)).toList();
 

@@ -16,7 +16,7 @@ export function withAxiosIntercepted<T extends JSX.IntrinsicAttributes>(Componen
 
         useEffect(() => {
             axios.interceptors.request.use((config: AxiosRequestConfig) => {
-                // console.log('config.headers', config.headers)
+                // console.log("config.headers", config.headers);
                 return {
                     ...config,
                     baseURL: process.env.REACT_APP_API_URL,

@@ -58,10 +58,13 @@ export const Register = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const reCaptchaSiteKey: string | undefined = process.env.REACT_APP_RECAPTCHA_SITE_KEY;
+    // const reCaptchaSiteKey: string | undefined = "6LfrF6gpAAAAAMW6Wl0n_vXcUrCjbQAQolNeWhXa";
     const [isReCaptchaValid, setIsReCaptchaValid] = useState<boolean>(false);
 
     const handleRecaptcha = async (value: any) => {
         if (value) {
+            // console.log(value);
+
             const response = await AuthApi.verifyRecaptcha(value);
             setIsReCaptchaValid(response.data);
             console.log("response.data", response.data);
