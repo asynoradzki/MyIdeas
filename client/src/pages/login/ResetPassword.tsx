@@ -1,7 +1,6 @@
 import { toast } from "react-toastify";
 // import { useNavigate } from "react-router-dom";
-import { UserContext } from "../../context/UserContext";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     CheckboxContainer,
     DivWrapper,
@@ -21,9 +20,8 @@ import { AuthApi } from "../../api/AuthApi";
 import { useParams } from "react-router-dom";
 
 export const ResetPassword = () => {
-    // const navigate = useNavigate();
-    const { resetToken } = useParams();
-    const { userModifier } = useContext(UserContext);
+    const { token: resetToken } = useParams();
+    // const { userModifier } = useContext(UserContext);
     const [password, setPassword] = useState<string>("");
     const [repeatedPassword, setRepeatedPassword] = useState<string>("");
 
@@ -32,13 +30,15 @@ export const ResetPassword = () => {
 
     const [showPassword, setShowPassword] = useState<boolean>(false);
 
-    //otwiera mi się drugie okienko jak zrobić, żeby był w jednym?
+    //otwiera mi się drugie okienko jak zrobić, żeby był w jednym? - nie da się
     const onRegisterClicked = useCallback(async () => {
         try {
             // const pageLocation: string[] = window.location.pathname.split("/");
             // const pathVariable: string = pageLocation[pageLocation.length - 1];
             // zmieniłem na useParams ale nie było przetestowane
+
             await AuthApi.resetPassword({ password: password }, resetToken!);
+            // await AuthApi.resetPassword({ password: password }, pathVariable);
 
             toast.success("Your password has successfully been reset, close the window and log in", {
                 position: toast.POSITION.TOP_RIGHT,
@@ -58,10 +58,8 @@ export const ResetPassword = () => {
                 position: toast.POSITION.TOP_RIGHT,
                 autoClose: 2000,
             });
-        } finally {
-            // navigate("/login");
         }
-    }, [password, /*navigate,*/ userModifier, resetToken]);
+    }, [password, resetToken]);
 
     useEffect(() => {
         setIsPasswordValid(password.length > 0);

@@ -31,9 +31,6 @@ import { validateEmailRFC2822 } from "./LoginHelpers";
 import { saveTokensToLocaleStorage } from "../../auth_helpers/authHelpers";
 import ReCAPTCHA from "react-google-recaptcha";
 
-// const siteKey = "6LewUjgpAAAAAEYRUlZnZ0mbBc2GPVXBi7Z-fqtW";
-// const secretKey = "6LewUjgpAAAAANhoBZ2jq9Bp6be2CX0KwvXnmelm";
-
 export const Register = () => {
     const navigate = useNavigate();
     const { userModifier } = useContext(UserContext);
@@ -58,7 +55,6 @@ export const Register = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const reCaptchaSiteKey: string | undefined = process.env.REACT_APP_RECAPTCHA_SITE_KEY;
-    // const reCaptchaSiteKey: string | undefined = "6LfrF6gpAAAAAMW6Wl0n_vXcUrCjbQAQolNeWhXa";
     const [isReCaptchaValid, setIsReCaptchaValid] = useState<boolean>(false);
 
     const handleRecaptcha = async (value: any) => {

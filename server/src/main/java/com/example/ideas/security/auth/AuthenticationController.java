@@ -51,6 +51,7 @@ public class AuthenticationController {
             @RequestParam("email") String userEmail
     ) {
         String baseUrl = "http://localhost:3000/reset-password";
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!  " + userEmail);
         return authenticationService.resetPassword(userEmail, baseUrl);
     }
 
